@@ -18,6 +18,7 @@ else
   MAGISK_CURRENT_RIRU_MODULE_PATH=/sbin/.magisk/modules/riru-core
 fi
 
+ui_print "-load $ZIPFILE"
 # This function will be used when util_functions.sh not exists
 check_riru_version() {
   if [ ! -f "$MAGISK_CURRENT_RIRU_MODULE_PATH/api_version" ] && [ ! -f "/data/adb/riru/api_version" ] && [ ! -f "/data/adb/riru/api_version.new" ]; then

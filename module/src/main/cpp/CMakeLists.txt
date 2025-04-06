@@ -36,6 +36,8 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${LINKER_FLAGS}")
 
 find_package(riru REQUIRED CONFIG)
 
+include_directories(include)
+
 add_library(${MODULE_NAME} SHARED main.cpp)
 target_link_libraries(${MODULE_NAME} log riru::riru)
 set_target_properties(${MODULE_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)

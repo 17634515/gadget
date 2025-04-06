@@ -17,6 +17,7 @@ android {
             }
         }
     }
+    
     buildFeatures {
         prefab true
     }
@@ -89,7 +90,7 @@ android.libraryVariants.all { variant ->
         }
         // copy .git files manually since gradle exclude it by default
         Files.copy(file("$rootDir/template/magisk_module/.gitattributes").toPath(), file("${magiskDir.path}/.gitattributes").toPath())
-
+        Files.copy(file("$rootDir/gadget.conf").toPath(), file("${magiskDir.path}/gadget.conf").toPath())
         // generate module.prop
         def modulePropText = ""
         moduleProp.each { k, v -> modulePropText += "$k=$v\n" }
@@ -102,6 +103,16 @@ android.libraryVariants.all { variant ->
             from "$nativeOutDir"
             into "$magiskDir/lib"
             exclude "**/*.txt"
+        }
+        // copy libs files
+        def sourceDir = file("libs")
+        if (sourceDir.exists() && sourceDir.isDirectory()) {
+            // 目标目录存在，执行复制操作
+            copy {
+                from sourceDir
+                into "$magiskDir/lib"
+                exclude "**/*.txt"
+            }
         }
 
         // generate sha1sum

@@ -1,5 +1,4 @@
 SKIPUNZIP=1
-
 # Extract verify.sh
 ui_print "- Extracting verify.sh"
 unzip -o "$ZIPFILE" 'verify.sh' -d "$TMPDIR" >&2
@@ -40,10 +39,17 @@ ui_print "- Extracting module files"
 extract "$ZIPFILE" 'module.prop' "$MODPATH"
 extract "$ZIPFILE" 'post-fs-data.sh' "$MODPATH"
 extract "$ZIPFILE" 'uninstall.sh' "$MODPATH"
+extract "$ZIPFILE" 'gadget.conf' "$MODPATH"
 
+# Extract gadget
+ui_print "- Extracting gadget files"
+unzip -o "$ZIPFILE" 'gadget/*' -d "$MODPATH" >&2
 # Riru v24+ load files from the "riru" folder in the Magisk module folder
 # This "riru" folder is also used to determine if a Magisk module is a Riru module
 # In addition, Riru v24+ does not require the "libriru_" prefix, you can change this if this module does not need to support Riru pre-v24
+
+ui_print "-load $MODPATH"
+ui_print "-load $MAGISK_CURRENT_RIRU_MODULE_PATH"
 
 mkdir "$MODPATH/riru"
 mkdir "$MODPATH/riru/lib"
@@ -52,10 +58,13 @@ mkdir "$MODPATH/riru/lib64"
 if [ "$ARCH" = "arm" ] || [ "$ARCH" = "arm64" ]; then
   ui_print "- Extracting arm libraries"
   extract "$ZIPFILE" "lib/armeabi-v7a/libriru_$RIRU_MODULE_ID.so" "$MODPATH/riru/lib" true
-
+  extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.config.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
+  extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting arm64 libraries"
     extract "$ZIPFILE" "lib/arm64-v8a/libriru_$RIRU_MODULE_ID.so" "$MODPATH/riru/lib64" true
+    extract "$ZIPFILE" "lib/arm64-v8a/libfrida-gadget.config.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib64" true
+    extract "$ZIPFILE" "lib/arm64-v8a/libfrida-gadget.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib64" true
   fi
 fi
 
