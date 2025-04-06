@@ -2,6 +2,8 @@
 
 [Riru](https://github.com/RikkaApps/Riru) module template.
 
+modify load fride gradle.so
+
 ## Build
 
 1. Rename `module.example.gradle` to `module.gradle`
