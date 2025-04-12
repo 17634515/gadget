@@ -7,9 +7,9 @@
 
 #ifndef LOG_TAG
 #ifdef __LP64__
-#define LOG_TAG    "frida_gadget64"
+#define LOG_TAG    "riru_gadget64"
 #else
-#define LOG_TAG    "frida_gadget"
+#define LOG_TAG    "riru_gadget"
 #endif
 #endif
 
