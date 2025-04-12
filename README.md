@@ -1,8 +1,33 @@
 # Riru - Template
 
-[Riru](https://github.com/RikkaApps/Riru) module template.
+[Riru](https://github.com/RikkaApps/Riru) module .
 
 modify load fride gradle.so
+
+ def sourceDir = file("libs") <<--copy frida gradle.so to module libs folder
+        if (sourceDir.exists() && sourceDir.isDirectory()) {
+            // 目标目录存在，执行复制操作
+            copy {
+                from sourceDir
+                into "$magiskDir/lib"
+                exclude "**/*.txt"
+            }
+        }
+
+install->
+  extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.config.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
+  extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
+
+gadget.conf
+{
+  "logging_enabled": true,
+  "log_level": "info",
+  "frida_version": "15.2.2",
+  "app_list": [
+    "com.android.app"
+  ]
+}
+app_list-> hook app list
 
 ## Build
 
