@@ -6,7 +6,6 @@ modify load fride gradle.so
 
  def sourceDir = file("libs") <<--copy frida gradle.so to module libs folder
         if (sourceDir.exists() && sourceDir.isDirectory()) {
-            // 目标目录存在，执行复制操作
             copy {
                 from sourceDir
                 into "$magiskDir/lib"
