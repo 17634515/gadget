@@ -1,0 +1,2 @@
+docker cp 8111c8ebce7e:/frida/build/frida-android-arm/lib/frida/32/frida-gadget.so ./module/libs/armeabi-v7a/libfrida-gadget.so
+docker cp 8111c8ebce7e:/frida/build/frida-android-arm64/lib/frida/64/frida-gadget.so ./module/libs/arm64-v8a/libfrida-gadget.so

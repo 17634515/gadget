@@ -40,6 +40,7 @@ extract "$ZIPFILE" 'module.prop' "$MODPATH"
 extract "$ZIPFILE" 'post-fs-data.sh' "$MODPATH"
 extract "$ZIPFILE" 'uninstall.sh' "$MODPATH"
 extract "$ZIPFILE" 'gadget.conf' "$MODPATH"
+extract "$ZIPFILE" 'service.sh' "$MODPATH"
 
 # Extract gadget
 ui_print "- Extracting gadget files"
@@ -60,11 +61,13 @@ if [ "$ARCH" = "arm" ] || [ "$ARCH" = "arm64" ]; then
   extract "$ZIPFILE" "lib/armeabi-v7a/libriru_$RIRU_MODULE_ID.so" "$MODPATH/riru/lib" true
   extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.config.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
   extract "$ZIPFILE" "lib/armeabi-v7a/libfrida-gadget.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib" true
+  extract "$ZIPFILE" "lib/armeabi-v7a/config" "$MODPATH" true
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting arm64 libraries"
     extract "$ZIPFILE" "lib/arm64-v8a/libriru_$RIRU_MODULE_ID.so" "$MODPATH/riru/lib64" true
     extract "$ZIPFILE" "lib/arm64-v8a/libfrida-gadget.config.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib64" true
     extract "$ZIPFILE" "lib/arm64-v8a/libfrida-gadget.so" "$MAGISK_CURRENT_RIRU_MODULE_PATH/system/lib64" true
+    extract "$ZIPFILE" "lib/arm64-v8a/config" "$MODPATH" true
   fi
 fi
 

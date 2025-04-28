@@ -3,7 +3,7 @@
 
 #include <errno.h>
 #include <string.h>
-#include "android/log.h"
+#include <android/log.h>
 
 #ifndef LOG_TAG
 #ifdef __LP64__

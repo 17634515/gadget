@@ -4,11 +4,16 @@
 #include <malloc.h>
 
 #include <fcntl.h>      // 定义 O_RDONLY 等文件操作标志
+#include <sys/socket.h>
+#include <sys/system_properties.h>
+#include <arpa/inet.h>
+#include <sys/un.h>
 
 #include <string>
 #include <unistd.h>
 
-#include "logging.h"
+#include <logging.h>
+
 #include <dlfcn.h>
 #include <dirent.h>
 
@@ -18,8 +23,9 @@
 #include <sstream>
 #include <unordered_map>
 
-#include <nlohmann/json.hpp>
+#include <thread>
 
+#include <nlohmann/json.hpp>
 
 // #include <android/log.h>
 
@@ -39,9 +45,7 @@ std::string formatString(const char* format, ...) {
     int size = std::vsnprintf(nullptr, 0, format, args) + 1;
     std::string formattedString(size, '\0');
     std::vsnprintf(&formattedString[0], size, format, args);
-
     va_end(args);
-
     return formattedString;
 }
 
@@ -53,6 +57,7 @@ json g_config;
 json g_forkpre;
 //gadget 配置
 std::string gadget_conf;
+
 
 
 // 读取配置文件
@@ -139,6 +144,7 @@ std::string getConfigValue(const std::unordered_map<std::string, std::string>& c
     }
 }
 
+
 std::string dlopen_gadget(){
     std::string restr;
     std::string libraryPath = "";//libfrida-gadget.so
@@ -176,6 +182,33 @@ bool should_hook(const std::string& package_name) {
     return false;  // 如果没有找到匹配的包名，表示不 hook
 }
 
+static bool isEnvironmentReady() {
+    const char* prop_name = "riru.gadget.signal";
+    char prop_value[PROP_VALUE_MAX];
+    __system_property_get(prop_name, prop_value);
+    if (strlen(prop_value) > 0 &&
+    strcmp(prop_value, "null") != 0 &&
+    strcmp(prop_value, "none") != 0 &&
+    strcmp(prop_value, "0") != 0) {
+        LOGD("Property %s detected: %s", prop_name, prop_value);
+        // 触发模块逻辑
+        return true;
+    }else{
+        return false;
+    }
+}
+
+static bool isEnvironmentReady1() {
+    const char* signal_file = "/sbin/.magisk/modules/riru_gadget/signal";
+    if (access(signal_file, F_OK) == 0) {
+        LOGD("Signal file detected, triggering module logic");
+        // 触发模块逻辑
+        return true;
+    }else{
+        LOGD("Failed to access signal file: %s", strerror(errno));
+        return false;
+    }
+}
 /**
     env	JNIEnv*	JNI 环境指针，用于 JNI 操作
     clazz	jclass	调用此 native 方法的 Java 类
@@ -242,10 +275,17 @@ static void forkAndSpecializePre(
             << ", arch_Type: " << arch_Type
             << ", Runtime Flags: " << *runtimeFlags;
     
-
+    // reload cfg
+    if(isEnvironmentReady()){
+        if (!read_config(gadget_conf)) {
+            LOG_THREAD("load failed gadget_conf->%s",gadget_conf.c_str());
+        }else{
+            LOG_THREAD("load success gadget_conf->%s",gadget_conf.c_str());
+        }
+    }
+    
     LOG_THREAD("%s", log_stream.str().c_str());
 
-    // 更新全局变量 g_hook
     g_forkpre = {
         {"nice_name", nice_name},
         {"app_dir", app_data_dir},
@@ -267,10 +307,8 @@ static void forkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
         if (should_hook(nice_name)) {
             LOG_THREAD("forkAndSpecializePost Hook -> %s", nice_name.c_str());
             LOG_THREAD("Calling dlopen_gadget ->");
-
             // 调用 dlopen_gadget
             std::string retstr = dlopen_gadget();
-
             // 输出 dlopen_gadget 返回值
             LOG_THREAD("dlopen_gadget <- ret= %s", retstr.c_str());
             LOG_THREAD("forkAndSpecializePost Hook success -> %s", nice_name.c_str());
@@ -352,21 +390,21 @@ void list_hooks() {
     }
 }
 
+
 static void onModuleLoaded() {
-    LOG_THREAD("riru module Loaded..");
+    LOG_THREAD("UID: %d", getuid());
+    LOG_THREAD("module Loaded..");
     LOG_THREAD("magisk_module_path-> %s", riru_magisk_module_path ? riru_magisk_module_path : "null");
     gadget_conf = riru_magisk_module_path ? std::string(riru_magisk_module_path) + "/gadget.conf" : "gadget.conf";
     LOG_THREAD("gadget_conf->%s",gadget_conf.c_str());
-
+    LOG_THREAD("adb shell su -c setprop riru.gadget.signal 1");
     if (!read_config(gadget_conf)) {
         LOG_THREAD("load failed gadget_conf->%s",gadget_conf.c_str());
         g_config["app_list"] = json::array();
     }else{
         LOG_THREAD("load success gadget_conf->%s",gadget_conf.c_str());
     }
-     // 输出需要 hook 的应用列表
-     list_hooks();
-
+    list_hooks();
 }
 
 extern "C" {
@@ -406,21 +444,18 @@ static auto module = RiruVersionedModuleInfo{
 
 #ifndef RIRU_MODULE_LEGACY_INIT
 RiruVersionedModuleInfo *init(Riru *riru) {
-    LOG_THREAD("init");
     auto core_max_api_version = riru->riruApiVersion;
     riru_api_version = core_max_api_version <= RIRU_MODULE_API_VERSION ? core_max_api_version : RIRU_MODULE_API_VERSION;
     module.moduleApiVersion = riru_api_version;
-
     riru_api = riru->riruApi;
     riru_magisk_module_path = strdup(riru->magiskModulePath);
-    LOG_THREAD("init-> %s",riru_magisk_module_path);
+    LOG_THREAD("%s",riru_magisk_module_path);
     return &module;
 }
 #else
 RiruVersionedModuleInfo *init(Riru *riru) {
     static int step = 0;
     step += 1;
-    LOG_THREAD("init");
     switch (step) {
         case 1: {
             auto core_max_api_version = riru->riruApiVersion;
@@ -429,7 +464,7 @@ RiruVersionedModuleInfo *init(Riru *riru) {
                 module.moduleApiVersion = riru_api_version;
                 riru_api = riru->riruApi;
                 riru_magisk_module_path = strdup(riru->magiskModulePath);
-                LOG_THREAD("magisk_module_path-> %s",riru_magisk_module_path);
+                LOG_THREAD("init-> %s,riru_api_version->%d",riru_magisk_module_path,riru_api_version);
                 return &module;
             } else {
                 return (RiruVersionedModuleInfo *) &riru_api_version;

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>配置修改页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fafafa;
+            box-sizing: border-box;
+        }
+        input[type="text"], input[type="submit"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        input[type="text"], input[type="submit"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-container {
+            text-align: center;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .info-message {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>配置文件修改</h1>
+        <p>当前配置文件路径: {{config_path}}</p>
+         <form id="configForm" onsubmit="saveConfig(event)">
+            <label for="json_config">修改配置 (JSON 格式):</label>
+            <textarea id="json_config" name="json_config">{{json_config}}</textarea>
+            <input type="submit" value="保存配置">
+        </form>
+        <h1>signal</h1>
+        <label for="prop">riru.gadget.signal.prop:</label>
+        <input type="text" id="prop" name="prop">
+        <button type="button" onclick="getProp()">Get Prop</button>
+        <button type="button" onclick="setProp()">Set Prop</button>
+    </div>
+    <script>
+// 使用 fetch 发送 AJAX 请求保存配置
+function saveConfig(event) {
+    event.preventDefault(); // 防止页面刷新
+
+    const jsonConfig = document.getElementById('json_config').value;
+
+    fetch('/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'json_config=' + encodeURIComponent(jsonConfig),
+    })
+    .then(response => response.text())
+    .then(result => {
+        // 弹出提示框
+        alert('配置保存成功！');
+    })
+    .catch(error => {
+        // 弹出错误提示框
+        alert('保存配置失败！');
+    });
+}
+</script>
+</body>
+</html>

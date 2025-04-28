@@ -1,8 +1,15 @@
 # Riru - Template
 
 [Riru](https://github.com/RikkaApps/Riru) module .
+## NEW log
+//http server
+adb forward tcp:27041 tcp:27041 
+//frida server
+adb forward tcp:27042 tcp:27042 
 
 modify load fride gradle.so
+
+/sbin/.magisk/modules/riru_gadget
 
  def sourceDir = file("libs") <<--copy frida gradle.so to module libs folder
         if (sourceDir.exists() && sourceDir.isDirectory()) {
@@ -27,6 +34,44 @@ gadget.conf
   ]
 }
 app_list-> hook app list
+
+
+{
+  "interaction": {
+    "type": "connect",
+    "address": "192.168.1.100",
+    "port": 27042,
+    "certificate": "/path/to/cert.pem",
+    "token": "my-auth-token",
+    "acl": ["192.168.1.0/24"],
+    "parameters": {
+      "resume_on_connect": true,
+      "app_identifier": "com.example.app",
+      "debug_mode": false,
+      "custom_param": "value"
+    }
+  },
+  "teardown": "minimal",
+  "runtime": "qjs",
+  "code_signing": "optional"
+}
+
+{
+  "interaction": {
+    "type": "listen",
+    "address": "0.0.0.0",
+    "port": 27042,
+    "certificate": "/path/to/cert.pem",
+    "token": "my-auth-token",
+    "on_load": "resume",
+    "on_port_conflict": "fail",
+    "origin": "https://example.com",
+    "asset_root": "/path/to/assets"
+  },
+  "teardown": "minimal",
+  "runtime": "qjs",
+  "code_signing": "optional"
+}
 
 ## Build
 
